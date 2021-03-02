@@ -20,16 +20,16 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private final int mCameraId;
     private final SurfaceHolder mHolder;
     private Camera mCamera;
-    private Camera.PreviewCallback mPreviewCallback;
+    private PreviewCallback mPreviewCallback;
 
     /**
      * @param context       上下文
      * @param cameraId      相机id
      * @param previewWidth  预览宽
      * @param previewHeight 预览高
-     * @param callback      预览帧回调，处理完后需要自行调用 camera.addCallbackBuffer(data); 来回调下一帧
+     * @param callback      预览帧回调
      */
-    public CameraPreview(Context context, int cameraId, int previewWidth, int previewHeight, Camera.PreviewCallback callback) {
+    public CameraPreview(Context context, int cameraId, int previewWidth, int previewHeight, PreviewCallback callback) {
         super(context);
         this.mCameraId = cameraId;
         this.mPreviewWidth = previewWidth;
@@ -91,8 +91,17 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         // start preview with new settings
         try {
-            mCamera.addCallbackBuffer(new byte[mPreviewWidth * mPreviewHeight * 3 / 2]);// 针对NV21格式
-            mCamera.setPreviewCallbackWithBuffer(mPreviewCallback);// 处理完需要自行调用 camera.addCallbackBuffer(data);
+            if (mPreviewCallback != null) {
+                mCamera.addCallbackBuffer(new byte[mPreviewWidth * mPreviewHeight * 3 / 2]);// 针对NV21格式
+                mCamera.setPreviewCallbackWithBuffer(new Camera.PreviewCallback() {
+                    @Override
+                    public void onPreviewFrame(byte[] data, Camera camera) {
+                        mPreviewCallback.onPreviewFrame(data, camera);
+                        camera.addCallbackBuffer(data);
+                    }
+                });
+            }
+
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
 
@@ -134,5 +143,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         if (mCamera != null) {
             mCamera.startPreview();
         }
+    }
+
+    public interface PreviewCallback{
+        void onPreviewFrame(byte[] data, Camera camera);
     }
 }

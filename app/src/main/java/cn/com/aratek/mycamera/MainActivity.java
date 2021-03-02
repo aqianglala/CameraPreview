@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
-    private Camera.PreviewCallback mPreviewCallback = new Camera.PreviewCallback() {
+    private CameraPreview.PreviewCallback mPreviewCallback = new CameraPreview.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
             camera.addCallbackBuffer(data);
